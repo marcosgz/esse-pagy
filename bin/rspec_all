@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# Test script to run rspec across all Ruby versions and Pagy versions
+# Usage: ./bin/rspec_all
+
+set -e
+
+echo "esse-pagy Cross-Version Test Suite"
+echo "=================================="
+
+# Define compatibility matrix
+# Format: "ruby_version:pagy_version"
+declare -a test_combinations=(
+    "2.7.8:5"
+    "2.7.8:6"
+    "3.1.2:7"
+    "3.2.2:7"
+    "3.2.2:8"
+    "3.2.2:9"
+    "3.3.5:9"
+)
+
+# Track results
+passed=0
+failed=0
+
+# Process each compatible combination
+for combination in "${test_combinations[@]}"; do
+    IFS=':' read -r ruby_version pagy_version <<< "$combination"
+
+    echo ""
+    echo "Testing with Ruby $ruby_version + Pagy $pagy_version"
+    echo "------------------------------------------------"
+
+    gemfile="gemfiles/Gemfile.pagy-$pagy_version"
+
+    if [[ ! -f "$gemfile" ]]; then
+        echo "❌ Gemfile not found: $gemfile"
+        failed=$((failed + 1))
+        continue
+    fi
+
+    echo -n "  Result: "
+
+    # Run test with appropriate Ruby version
+    # Temporarily disable set -e for this command
+    set +e
+    mise exec ruby@$ruby_version -- bundle exec --gemfile=$gemfile rspec > /dev/null 2>&1
+    test_result=$?
+    set -e
+
+    if [[ $test_result -eq 0 ]]; then
+        echo "✅ PASS"
+        passed=$((passed + 1))
+    else
+        echo "❌ FAIL"
+        failed=$((failed + 1))
+    fi
+done
+
+echo ""
+echo "=================================="
+echo "SUMMARY: $passed passed, $failed failed"
+
+if [[ $failed -eq 0 ]]; then
+    echo "🎉 All tests passed!"
+    exit 0
+else
+    echo "💥 Some tests failed!"
+    exit 1
+fi
