@@ -16,6 +16,15 @@ And then execute:
 $ bundle install
 ```
 
+## Pagy Version Compatibility
+
+This gem supports Pagy versions 5.x through 9.x, but with different Ruby version requirements:
+
+| Pagy Version | Ruby Version Required |
+|--------------|----------------------|
+| 5.x, 6.x     | >= 2.5.0             |
+| 7.x, 8.x, 9.x| >= 3.1.0             |
+
 ## Usage
 
 ```ruby

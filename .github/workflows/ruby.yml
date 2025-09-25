@@ -11,13 +11,21 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby-version:
-          - '2.7'
-          - '3.0'
-          - '3.1'
-          - '3.2'
-        gemfile:
-          - 'Gemfile'
+        include:
+          - ruby-version: '2.7.8'
+            gemfile: 'gemfiles/Gemfile.pagy-5'
+          - ruby-version: '2.7.8'
+            gemfile: 'gemfiles/Gemfile.pagy-6'
+          - ruby-version: '3.1.2'
+            gemfile: 'gemfiles/Gemfile.pagy-7'
+          - ruby-version: '3.2.2'
+            gemfile: 'gemfiles/Gemfile.pagy-7'
+          - ruby-version: '3.2.2'
+            gemfile: 'gemfiles/Gemfile.pagy-8'
+          - ruby-version: '3.2.2'
+            gemfile: 'gemfiles/Gemfile.pagy-9'
+          - ruby-version: '3.3.5'
+            gemfile: 'gemfiles/Gemfile.pagy-9'
     env:
       BUNDLE_GEMFILE: ${{ github.workspace }}/${{ matrix.gemfile }}
     steps:

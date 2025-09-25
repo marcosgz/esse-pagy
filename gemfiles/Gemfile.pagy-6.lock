@@ -1,5 +1,5 @@
 PATH
-  remote: .
+  remote: ..
   specs:
     esse-pagy (0.0.2)
       esse (>= 0.2.4)
@@ -42,8 +42,7 @@ GEM
     minitest (5.20.0)
     multi_json (1.15.0)
     mutex_m (0.2.0)
-    pagy (5.10.1)
-      activesupport
+    pagy (6.5.0)
     parallel (1.23.0)
     parser (3.2.2.4)
       ast (~> 2.4.1)
@@ -121,7 +120,7 @@ DEPENDENCIES
   esse (~> 0.2.4)
   esse-pagy!
   esse-rspec (~> 0.0.1)
-  pagy (~> 5.10, >= 5.10.1)
+  pagy (~> 6.0)
   pry
   rack
   rake-manifest

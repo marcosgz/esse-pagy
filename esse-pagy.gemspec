@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name = "esse-pagy"
-  spec.version = "0.0.1"
+  spec.version = "0.0.2"
   spec.authors = ["Marcos G. Zimmermann"]
   spec.email = ["mgzmaster@gmail.com"]
 

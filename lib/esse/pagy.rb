@@ -34,8 +34,15 @@ module Esse
       def new_from_esse(query, vars = {})
         vars[:count] = query.response.total
         vars[:page] = (query.offset_value / query.limit_value.to_f).ceil + 1
-        vars[:items] = query.limit_value
-        ::Pagy.new(vars)
+        vars[:limit] = query.limit_value
+
+        if ::Pagy::VERSION.to_i < 9
+          # Convert :limit back to :items for older Pagy versions
+          vars[:items] = vars.delete(:limit)
+          ::Pagy.new(vars)
+        else
+          ::Pagy.new(**vars)
+        end
       end
     end
 
@@ -47,12 +54,20 @@ module Esse
       def pagy_esse(pagy_search_args, vars = {})
         cluster, indices, kwargs, block, *called = pagy_search_args
         vars = pagy_esse_get_vars(nil, vars)
+
         query = cluster.send(::Pagy::DEFAULT[:esse_search], *indices, **kwargs, &block)
-          .limit(vars[:items])
-          .offset(vars[:items] * (vars[:page] - 1))
+          .limit(vars[:limit])
+          .offset(vars[:limit] * (vars[:page] - 1))
         vars[:count] = query.response.total
 
-        pagy = ::Pagy.new(vars)
+        # Handle Pagy 9+ API changes
+        if ::Pagy::VERSION.to_i >= 9
+          pagy = ::Pagy.new(**vars)
+        else
+          legacy_vars = vars.dup
+          legacy_vars[:items] = legacy_vars.delete(:limit)
+          pagy = ::Pagy.new(legacy_vars)
+        end
         # with :last_page overflow we need to re-run the method in order to get the hits
         return pagy_esse(pagy_search_args, vars.merge(page: pagy.page)) \
                if defined?(::Pagy::OverflowExtra) && pagy.overflow? && pagy.vars[:overflow] == :last_page
@@ -64,7 +79,15 @@ module Esse
       # the _query argument is not available when the method is called
       def pagy_esse_get_vars(_query, vars)
         pagy_set_items_from_params(vars) if defined?(ItemsExtra)
-        vars[:items] ||= ::Pagy::DEFAULT[:items]
+
+        # Convert :items to :limit for consistency, this is not needed for Pagy 9+
+        vars[:limit] = vars.delete(:items) if vars.key?(:items)
+        if ::Pagy::VERSION.to_i < 9
+          vars[:limit] ||= ::Pagy::DEFAULT[:items]
+        else
+          vars[:limit] ||= ::Pagy::DEFAULT[:limit]
+        end
+
         vars[:page] ||= (params[vars[:page_param] || ::Pagy::DEFAULT[:page_param]] || 1).to_i
         vars
       end

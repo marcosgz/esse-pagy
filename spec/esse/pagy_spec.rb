@@ -87,7 +87,7 @@ RSpec.describe Esse::Pagy do
       pagy = ::Pagy.new_from_esse(CitiesIndex.search("*", from: 0, size: 2))
       expect(pagy.count).to eq(5)
       expect(pagy.page).to eq(1)
-      expect(pagy.items).to eq(2)
+      expect(pagy_limit(pagy)).to eq(2)
     end
 
     it "paginates query with given search body query :size and :from" do
@@ -105,7 +105,7 @@ RSpec.describe Esse::Pagy do
       pagy = ::Pagy.new_from_esse(CitiesIndex.search(body: {query: {}, from: 0, size: 2}))
       expect(pagy.count).to eq(5)
       expect(pagy.page).to eq(1)
-      expect(pagy.items).to eq(2)
+      expect(pagy_limit(pagy)).to eq(2)
     end
 
     it "paginates results with vars" do
@@ -123,7 +123,7 @@ RSpec.describe Esse::Pagy do
       pagy = ::Pagy.new_from_esse(CitiesIndex.search("*").limit(4).offset(2), link_extra: "x")
       expect(pagy.count).to eq(99)
       expect(pagy.page).to eq(2)
-      expect(pagy.items).to eq(4)
+      expect(pagy_limit(pagy)).to eq(4)
       expect(pagy.vars[:link_extra]).to eq("x")
     end
   end
@@ -151,7 +151,7 @@ RSpec.describe Esse::Pagy do
       expect(pagy).to be_a(::Pagy)
       expect(query).to be_a(Esse::Search::Query)
       expect(pagy.count).to eq(1000)
-      expect(pagy.items).to eq(::Pagy::DEFAULT[:items])
+      expect(pagy_limit(pagy)).to eq(pagy_default_limit)
       expect(pagy.page).to eq(app.params[:page])
     end
 
@@ -171,7 +171,7 @@ RSpec.describe Esse::Pagy do
       expect(pagy).to be_a(::Pagy)
       expect(query).to be_a(Esse::Search::Query)
       expect(pagy.count).to eq(99)
-      expect(pagy.items).to eq(10)
+      expect(pagy_limit(pagy)).to eq(10)
       expect(pagy.page).to eq(2)
       expect(pagy.vars[:link_extra]).to eq("x")
     end
@@ -203,7 +203,7 @@ RSpec.describe Esse::Pagy do
       expect(pagy).to be_a(::Pagy)
       expect(query).to be_a(Esse::Search::Query)
       expect(pagy.count).to eq(1000)
-      expect(pagy.items).to eq(10)
+      expect(pagy_limit(pagy)).to eq(10)
       expect(pagy.page).to eq(100)
     end
   end
@@ -227,7 +227,7 @@ RSpec.describe Esse::Pagy do
       expect(pagy).to be_a(::Pagy)
       expect(query).to be_a(Esse::Search::Query)
       expect(pagy.count).to eq(1000)
-      expect(pagy.items).to eq(::Pagy::DEFAULT[:items])
+      expect(pagy_limit(pagy)).to eq(pagy_default_limit)
       expect(pagy.page).to eq(app.params[:page])
     end
 
@@ -248,7 +248,7 @@ RSpec.describe Esse::Pagy do
       expect(pagy).to be_a(::Pagy)
       expect(query).to be_a(Esse::Search::Query)
       expect(pagy.count).to eq(99)
-      expect(pagy.items).to eq(10)
+      expect(pagy_limit(pagy)).to eq(10)
       expect(pagy.page).to eq(2)
       expect(pagy.vars[:link_extra]).to eq("x")
     end
@@ -280,7 +280,7 @@ RSpec.describe Esse::Pagy do
       expect(pagy).to be_a(::Pagy)
       expect(query).to be_a(Esse::Search::Query)
       expect(pagy.count).to eq(1000)
-      expect(pagy.items).to eq(10)
+      expect(pagy_limit(pagy)).to eq(10)
       expect(pagy.page).to eq(100)
     end
   end
@@ -291,20 +291,42 @@ RSpec.describe Esse::Pagy do
     it "returns vars from params" do
       vars = app.send(:pagy_esse_get_vars, nil, {})
       expect(vars[:page]).to eq(3)
-      expect(vars[:items]).to eq(::Pagy::DEFAULT[:items])
+      expect(vars[:limit]).to eq(pagy_default_limit)
     end
 
     it "returns vars from params and merge with given vars" do
       vars = app.send(:pagy_esse_get_vars, nil, page: 2, items: 10)
       expect(vars[:page]).to eq(2)
-      expect(vars[:items]).to eq(10)
+      expect(vars[:limit]).to eq(10)
     end
 
     it "returns vars from params and merge with given vars and :page_param" do
       vars = app.send(:pagy_esse_get_vars, nil, page: 2, items: 10, page_param: :p)
       expect(vars[:page]).to eq(2)
-      expect(vars[:items]).to eq(10)
+      expect(vars[:limit]).to eq(10)
       expect(vars[:page_param]).to eq(:p)
+    end
+  end
+
+  # Helper method to get items/limit value across Pagy versions
+  def pagy_limit(pagy)
+    if pagy.respond_to?(:items)
+      pagy.items
+    elsif pagy.respond_to?(:limit)
+      pagy.limit
+    else
+      raise "Unknown Pagy version - neither items nor limit method available"
+    end
+  end
+
+  # Helper method to get default items/limit value across Pagy versions
+  def pagy_default_limit
+    if ::Pagy::DEFAULT.key?(:limit)
+      ::Pagy::DEFAULT[:limit]
+    elsif ::Pagy::DEFAULT.key?(:items)
+      ::Pagy::DEFAULT[:items]
+    else
+      raise "Unknown Pagy version - neither :items nor :limit in DEFAULT"
     end
   end
 end

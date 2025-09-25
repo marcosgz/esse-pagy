@@ -3,6 +3,9 @@ set -euo pipefail
 IFS=$'\n\t'
 set -vx
 
-bundle install
-
-# Do any other automated setup that you need to do here
+mise exec ruby@2.7.8 -- bundle install
+mise exec ruby@2.7.8 -- bundle install --gemfile gemfiles/Gemfile.pagy-5
+mise exec ruby@2.7.8 -- bundle install --gemfile gemfiles/Gemfile.pagy-6
+mise exec ruby@3.2.2 -- bundle install --gemfile gemfiles/Gemfile.pagy-7
+mise exec ruby@3.2.2 -- bundle install --gemfile gemfiles/Gemfile.pagy-8
+mise exec ruby@3.2.2 -- bundle install --gemfile gemfiles/Gemfile.pagy-9

@@ -1,5 +1,5 @@
 PATH
-  remote: .
+  remote: ..
   specs:
     esse-pagy (0.0.2)
       esse (>= 0.2.4)
@@ -121,7 +121,7 @@ DEPENDENCIES
   esse (~> 0.2.4)
   esse-pagy!
   esse-rspec (~> 0.0.1)
-  pagy (~> 5.10, >= 5.10.1)
+  pagy (~> 5.0)
   pry
   rack
   rake-manifest
