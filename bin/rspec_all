@@ -1,16 +1,51 @@
 #!/bin/bash
 
-# Test script to run rspec across all Ruby versions and Pagy versions
-# Usage: ./bin/rspec_all
+# Test script to run rspec across compatible Ruby and Pagy version combinations
+# Usage:
+#   ./bin/rspec_all                    # Run all compatible combinations
+#   ./bin/rspec_all 3.2.2             # Run all Pagy versions for Ruby 3.2.2
+#   ./bin/rspec_all 3.2.2 8           # Run Ruby 3.2.2 with Pagy 8
 
 set -e
 
-echo "esse-pagy Cross-Version Test Suite"
+# Parse command line arguments
+target_ruby="$1"
+target_pagy="$2"
+
+# Handle help
+if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+    echo "esse-pagy Compatibility Test Suite"
+    echo "=================================="
+    echo ""
+    echo "Usage:"
+    echo "  $0                    # Run all compatible combinations"
+    echo "  $0 <ruby_version>     # Run all Pagy versions for specific Ruby"
+    echo "  $0 <ruby_version> <pagy_version>  # Run specific combination"
+    echo ""
+    echo "Examples:"
+    echo "  $0                    # Test all 7 compatible combinations"
+    echo "  $0 3.2.2             # Test Ruby 3.2.2 with Pagy 7, 8, 9"
+    echo "  $0 3.2.2 8           # Test Ruby 3.2.2 with Pagy 8 only"
+    echo ""
+    echo "Available combinations:"
+    echo "  - Ruby 2.7.8: Pagy 5, 6"
+    echo "  - Ruby 3.1.2: Pagy 7"
+    echo "  - Ruby 3.2.2: Pagy 7, 8, 9"
+    echo "  - Ruby 3.3.5: Pagy 9"
+    exit 0
+fi
+
+echo "esse-pagy Compatibility Test Suite"
 echo "=================================="
 
 # Define compatibility matrix
 # Format: "ruby_version:pagy_version"
-declare -a test_combinations=(
+# Based on known compatibility:
+# - Ruby 2.7.x: Compatible with Pagy 5, 6
+# - Ruby 3.1.x: Compatible with Pagy 7
+# - Ruby 3.2.x: Compatible with Pagy 7, 8, 9
+# - Ruby 3.3.x: Compatible with Pagy 9
+declare -a all_combinations=(
     "2.7.8:5"
     "2.7.8:6"
     "3.1.2:7"
@@ -19,6 +54,58 @@ declare -a test_combinations=(
     "3.2.2:9"
     "3.3.5:9"
 )
+
+# Filter combinations based on arguments
+declare -a test_combinations=()
+
+if [[ -n "$target_ruby" && -n "$target_pagy" ]]; then
+    # Specific Ruby + Pagy combination
+    combination="$target_ruby:$target_pagy"
+    if [[ " ${all_combinations[*]} " =~ " $combination " ]]; then
+        test_combinations=("$combination")
+    else
+        echo "❌ Error: Ruby $target_ruby with Pagy $target_pagy is not a known compatible combination"
+        echo "Available combinations:"
+        for combo in "${all_combinations[@]}"; do
+            IFS=':' read -r ruby_ver pagy_ver <<< "$combo"
+            echo "  - Ruby $ruby_ver + Pagy $pagy_ver"
+        done
+        exit 1
+    fi
+elif [[ -n "$target_ruby" ]]; then
+    # All Pagy versions for specific Ruby
+    for combination in "${all_combinations[@]}"; do
+        IFS=':' read -r ruby_ver pagy_ver <<< "$combination"
+        if [[ "$ruby_ver" == "$target_ruby" ]]; then
+            test_combinations+=("$combination")
+        fi
+    done
+
+    if [[ ${#test_combinations[@]} -eq 0 ]]; then
+        echo "❌ Error: No compatible Pagy versions found for Ruby $target_ruby"
+        echo "Available Ruby versions:"
+        for combo in "${all_combinations[@]}"; do
+            IFS=':' read -r ruby_ver pagy_ver <<< "$combo"
+            echo "  - $ruby_ver"
+        done | sort -u
+        exit 1
+    fi
+else
+    # All combinations (default)
+    test_combinations=("${all_combinations[@]}")
+fi
+
+# Show what we're testing
+if [[ ${#test_combinations[@]} -eq 1 ]]; then
+    IFS=':' read -r ruby_ver pagy_ver <<< "${test_combinations[0]}"
+    echo "Testing: Ruby $ruby_ver + Pagy $pagy_ver"
+elif [[ -n "$target_ruby" ]]; then
+    echo "Testing: Ruby $target_ruby with all compatible Pagy versions"
+else
+    echo "Testing: All compatible Ruby + Pagy combinations"
+fi
+echo ""
+
 
 # Track results
 passed=0
