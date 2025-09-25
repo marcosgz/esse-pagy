@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  ruby-legacy:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -16,24 +16,6 @@ jobs:
             gemfile: 'gemfiles/Gemfile.pagy-5'
           - ruby-version: '2.7.8'
             gemfile: 'gemfiles/Gemfile.pagy-6'
-    env:
-      BUNDLE_GEMFILE: ${{ github.workspace }}/${{ matrix.gemfile }}
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up using Ruby ${{ matrix.ruby-version }} with Gemfile '${{ matrix.gemfile }}'
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ matrix.ruby-version }}
-          bundler-cache: true
-          rubygems: latest
-      - name: Run tests
-        run: bundle exec rspec
-
-  ruby-modern:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
           - ruby-version: '3.1.2'
             gemfile: 'gemfiles/Gemfile.pagy-7'
           - ruby-version: '3.2.2'
