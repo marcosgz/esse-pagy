@@ -2,6 +2,10 @@
 
 This gem is a [esse](https://github.com/marcosgz/esse) plugin for the [pagy](https://github.com/ddnexus/pagy) pagination.
 
+## Documentation
+
+Full guides, pagination examples, and API reference are published at **[gems.marcosz.com.br/esse-pagy](https://gems.marcosz.com.br/esse-pagy/)** — part of the [marcosgz Ruby gem catalogue](https://gems.marcosz.com.br).
+
 ## Installation
 
 Add this line to your application's Gemfile:
