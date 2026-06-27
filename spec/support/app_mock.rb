@@ -6,8 +6,9 @@ require "active_support/core_ext/hash/indifferent_access"
 class MockApp
   attr_reader :params, :request, :response
 
-  include Pagy::Backend
-  include Pagy::Frontend
+  # Pagy 43 removed Pagy::Backend/Frontend; the Backend-only specs are skipped there.
+  include Pagy::Backend if PAGY_BACKEND_AVAILABLE
+  include Pagy::Frontend if PAGY_BACKEND_AVAILABLE
 
   # App params are merged into the @request.params (and are all strings)
   # @params are taken from @request.params and merged with app params (which fixes symbols and strings in params)

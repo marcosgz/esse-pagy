@@ -3,8 +3,14 @@
 require "esse"
 require "pagy"
 
-::Pagy::DEFAULT[:esse_search] ||= :search
-::Pagy::DEFAULT[:esse_pagy_search] ||= :pagy_search
+# Pagy < 43 ships a mutable DEFAULT and a Backend mixin used by the
+# `pagy_esse`/`pagy_search` controller helpers. Pagy 43 froze DEFAULT, removed
+# the Backend mixin, and split paginators into Pagy::Offset/Keyset/Search.
+# Only register the controller-helper defaults where they apply.
+unless ::Pagy::DEFAULT.frozen?
+  ::Pagy::DEFAULT[:esse_search] ||= :search
+  ::Pagy::DEFAULT[:esse_pagy_search] ||= :pagy_search
+end
 
 # I'll try to move this to the `pagy` gem. But we need to wait for the `pagy` author to accept the PR.
 # @see https://github.com/ddnexus/pagy/blob/master/lib/pagy/extras/elasticsearch_rails.rb
@@ -18,7 +24,7 @@ module Esse
           args.define_singleton_method(:method_missing) { |*a| args += a }
         end
       end
-      alias_method ::Pagy::DEFAULT[:esse_pagy_search], :pagy_esse
+      alias_method :pagy_search, :pagy_esse
     end
 
     module ClusterSearch
@@ -27,7 +33,7 @@ module Esse
           args.define_singleton_method(:method_missing) { |*a| args += a }
         end
       end
-      alias_method ::Pagy::DEFAULT[:esse_pagy_search], :pagy_esse
+      alias_method :pagy_search, :pagy_esse
     end
 
     module ClassMethods
@@ -36,7 +42,10 @@ module Esse
         vars[:page] = (query.offset_value / query.limit_value.to_f).ceil + 1
         vars[:limit] = query.limit_value
 
-        if ::Pagy::VERSION.to_i < 9
+        if defined?(::Pagy::Offset)
+          # Pagy 43+: bare Pagy is abstract; offset pagination is Pagy::Offset.
+          ::Pagy::Offset.new(**vars)
+        elsif ::Pagy::VERSION.to_i < 9
           # Convert :limit back to :items for older Pagy versions
           vars[:items] = vars.delete(:limit)
           ::Pagy.new(vars)
@@ -46,7 +55,8 @@ module Esse
       end
     end
 
-    # Add specialized backend methods to paginate Esse::Search::Query
+    # Add specialized backend methods to paginate Esse::Search::Query.
+    # Only relevant on Pagy versions that still ship Pagy::Backend (< 43).
     module Backend
       private
 
@@ -95,7 +105,13 @@ module Esse
   end
 end
 
-::Pagy::Backend.prepend(Esse::Pagy::Backend)
 ::Pagy.extend(Esse::Pagy::ClassMethods)
 ::Esse::Index.extend(Esse::Pagy::IndexSearch)
 ::Esse::Cluster.prepend(Esse::Pagy::ClusterSearch)
+# Pagy::Backend was removed in Pagy 43; reference it (autoloads on older Pagy)
+# and skip the integration when it is gone.
+begin
+  ::Pagy::Backend.prepend(Esse::Pagy::Backend)
+rescue NameError
+  nil
+end

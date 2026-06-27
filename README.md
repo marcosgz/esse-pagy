@@ -22,12 +22,26 @@ $ bundle install
 
 ## Pagy Version Compatibility
 
-This gem supports Pagy versions 5.x through 9.x, but with different Ruby version requirements:
+Pagy 43 reorganized its internals (it froze `Pagy::DEFAULT`, removed the
+`Pagy::Backend` mixin, and split paginators into `Pagy::Offset`/`Keyset`/`Search`),
+which is not backward compatible. esse-pagy releases track the supported Pagy major:
 
-| Pagy Version | Ruby Version Required |
-|--------------|----------------------|
-| 5.x, 6.x     | >= 2.5.0             |
-| 7.x, 8.x, 9.x| >= 3.1.0             |
+| esse-pagy   | Pagy        | Ruby Version Required                       |
+|-------------|-------------|--------------------------------------------|
+| `>= 0.43`   | 43.x        | >= 3.1.0                                    |
+| `<= 0.0.2`  | 5.x – 9.x   | >= 2.5.0 (5.x, 6.x), >= 3.1.0 (7.x–9.x)     |
+
+If your app is still on Pagy 5–9, pin the previous esse-pagy release:
+
+```ruby
+gem "esse-pagy", "~> 0.0.2"
+```
+
+For Pagy 43+:
+
+```ruby
+gem "esse-pagy", ">= 0.43"
+```
 
 ## Usage
 

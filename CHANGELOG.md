@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.43.0
+
+### Added
+* Pagy 43 support: `new_from_esse` builds a `Pagy::Offset` (bare `Pagy` is abstract in 43), and the controller-helper defaults / `Pagy::Backend` integration are only registered on Pagy versions that ship them (43 froze `Pagy::DEFAULT` and removed `Pagy::Backend`).
+* CI gemfile + matrix entry for Pagy 43.
+
 ## 0.0.2 - 2024-12-19
 
 ### Added
