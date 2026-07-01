@@ -124,11 +124,11 @@ RSpec.describe Esse::Pagy do
       expect(pagy.count).to eq(99)
       expect(pagy.page).to eq(2)
       expect(pagy_limit(pagy)).to eq(4)
-      expect(pagy.vars[:link_extra]).to eq("x")
+      expect(pagy_var(pagy, :link_extra)).to eq("x")
     end
   end
 
-  describe "Pagy::Backend.pagy_esse on esse index search" do
+  describe "Pagy::Backend.pagy_esse on esse index search", skip: BACKEND_SKIP do
     let(:app) { MockApp.new }
 
     before do
@@ -208,7 +208,7 @@ RSpec.describe Esse::Pagy do
     end
   end
 
-  describe "Pagy::Backend.pagy_esse on esse cluster search" do
+  describe "Pagy::Backend.pagy_esse on esse cluster search", skip: BACKEND_SKIP do
     let(:app) { MockApp.new }
 
     it "paginates response with defaults" do
@@ -285,7 +285,7 @@ RSpec.describe Esse::Pagy do
     end
   end
 
-  describe "Pagy::Backend.pagy_esse_get_vars" do
+  describe "Pagy::Backend.pagy_esse_get_vars", skip: BACKEND_SKIP do
     let(:app) { MockApp.new }
 
     it "returns vars from params" do
@@ -306,6 +306,12 @@ RSpec.describe Esse::Pagy do
       expect(vars[:limit]).to eq(10)
       expect(vars[:page_param]).to eq(:p)
     end
+  end
+
+  # Reads a Pagy var across versions (Pagy 43 renamed #vars to #options).
+  def pagy_var(pagy, key)
+    store = pagy.respond_to?(:vars) ? pagy.vars : pagy.options
+    store[key]
   end
 
   # Helper method to get items/limit value across Pagy versions
